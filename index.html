@@ -6,7 +6,7 @@
     <title>Jogo de Musculatura Facial</title>
     <style>
         h1 {
-            color: rgb(77, 193, 255);
+            color: #dec596;
             margin-bottom: 20px;
         }
         body {
@@ -60,9 +60,9 @@
         }
         .muscle-marker {
             position: absolute;
-            width: 20px;
-            height: 20px;
-            background-color: green;
+            width: 10px;
+            height: 10px;
+            background-color: rgb(4, 0, 255);
             border-radius: 50%;
             transform: translate(-50%, -50%);
             pointer-events: none;
@@ -90,7 +90,7 @@
         </div>
 
         <div id="gameArea">
-            <p>Clique no músculo correto!</p>
+            <strong>Clique no músculo correto!</strong>
             <p id="targetMuscle"></p>
             <div style="position: relative;">
                 <canvas id="gameCanvas" width="900" height="600"></canvas>
@@ -115,24 +115,34 @@
         const errorSound = document.getElementById('errorSound');
         const image = new Image();
         image.src = "imagem.jpg";
-
+    
         let correctScore = 0;
         let wrongScore = 0;
-
+    
         const muscles = [
-            { name: 'Frontalis', x: 450, y: 170 }, // Testa
-            { name: 'Orbicularis oculi', x: 450, y: 220 }, // Olhos
-            { name: 'Zygomaticus', x: 500, y: 320 }, // Bochecha superior
-            { name: 'Nasalis', x: 450, y: 250 }, // Nariz
-            { name: 'Buccinator', x: 430, y: 380 }, // Bochecha inferior
-            { name: 'Masseter', x: 450, y: 480 }, // Mandíbula
-            { name: 'Orbicularis oris', x: 450, y: 530 }, // Boca
-            { name: 'Depressor anguli oris', x: 450, y: 430 }, // Queixo
-            { name: 'Levator labii superioris', x: 470, y: 310 } // Acima do lábio superior
+            { name: 'Frontal', x: 450, y: 170 },
+            { name: 'Orbicular do olho direito', x: 500, y: 220 },
+            { name: 'Zigomatico maior', x: 400, y: 320 },
+            { name: 'Zigomatico menor', x: 405, y: 300 },
+            { name: 'Nasal', x: 450, y: 270 },
+            { name: 'Bucinador', x: 515, y: 340 },
+            { name: 'Masseter', x: 530, y: 370 },
+            { name: 'Orbicular da boca', x: 450, y: 340 },
+            { name: 'Depressor angulo boca', x: 400, y: 400 },
+            { name: 'Levantador angulo boca', x: 500, y: 310 },
+            { name: 'Levantador do lábio superior', x: 415, y: 290 },
+            { name: 'Levantador do lábio superior e asa do nariz', x: 475, y: 280 },
+            { name: 'Risorio', x: 380, y: 360 },
+            { name: 'Platisma', x: 410, y: 450 },
+            { name: 'Mentual', x: 460, y: 420 },
+            { name: 'Depressor lábio inferior', x: 480, y: 390 },
+            { name: 'Procero', x: 450, y: 230 },
+            { name: 'Corrugador supercilio', x: 480, y: 200 },
+            { name: 'Esternocleidomastoide', x: 500, y: 510 }
         ];
-
+    
         let targetMuscle = null;
-
+    
         function drawImage() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
@@ -151,54 +161,59 @@
                 markersContainer.appendChild(marker);
             });
         }
-
+    
         function pickNewTarget() {
             targetMuscle = muscles[Math.floor(Math.random() * muscles.length)];
             document.getElementById('targetMuscle').textContent = `Encontre: ${targetMuscle.name}`;
         }
-
+    
         function updateScore() {
             document.getElementById('correctScore').textContent = correctScore;
             document.getElementById('wrongScore').textContent = wrongScore;
         }
-
+    
         image.onload = () => {
             drawImage();
             pickNewTarget();
         };
-
+    
         canvas.addEventListener('click', (event) => {
             const rect = canvas.getBoundingClientRect();
             const x = event.clientX - rect.left;
             const y = event.clientY - rect.top;
-
-            let found = false;
-
-            muscles.forEach(muscle => {
+    
+            let acertou = false;
+            let clicouEmMusculo = false;
+    
+            for (let muscle of muscles) {
                 const distance = Math.sqrt((x - muscle.x) ** 2 + (y - muscle.y) ** 2);
                 if (distance < 30) {
-                    found = true;
+                    clicouEmMusculo = true;
                     if (muscle.name === targetMuscle.name) {
-                        successSound.play();
-                        alert(`✅ Parabéns! Você encontrou o músculo ${muscle.name}.`);
-                        correctScore++;
-                        pickNewTarget();
-                    } else {
-                        errorSound.play(); 
-                        alert("❌ Errado! Tente novamente.");
-                        wrongScore++;
+                        acertou = true;
+                        break; 
                     }
-                    updateScore();
                 }
-            });
-
-            if (!found) {
-                errorSound.play(); 
+            }
+    
+            if (acertou) {
+                successSound.play();
+                alert(`✅ Parabéns! Você encontrou o músculo ${targetMuscle.name}.`);
+                correctScore++;
+                pickNewTarget();
+            } else if (clicouEmMusculo) {
+                errorSound.play();
+                alert("❌ Errado! Tente novamente.");
+                wrongScore++;
+            } else {
+                errorSound.play();
                 alert("❌ Você clicou fora da área dos músculos. Tente novamente.");
                 wrongScore++;
-                updateScore();
             }
+    
+            updateScore();
         });
     </script>
+    
 </body>
 </html>
