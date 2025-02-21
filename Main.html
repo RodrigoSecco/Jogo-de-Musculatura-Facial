@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo de Musculatura Facial</title>
+    <style>
+        h1 {
+            color: rgb(77, 193, 255);
+            margin-bottom: 20px;
+        }
+        body {
+            background-color: rgb(126, 20, 20);
+            font-family: Arial, sans-serif;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 1400px;
+            align-items: center;
+            margin-top: 30px;
+            gap: 50px;
+        }
+        #developer, #scoreboard {
+            width: 500px;
+            font-size: large;
+            padding: 10px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            color: rgb(78, 78, 78);
+            line-height: 1.8;
+        }
+        .acertos{
+            color: #09ff00;
+        }
+        .erros{
+            color: #ff0000;
+        }
+        #gameArea {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        #gameCanvas {
+            border: 3px solid rgb(0, 0, 255);
+            border-radius: 20px;
+            margin-top: 20px;
+        }
+        .muscle-marker {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: green;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        #targetMuscle {
+            font-size: 22px;
+            font-weight: bold;
+            color: rgb(255, 0, 0);
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Jogo de Musculatura Facial</h1>
+
+    <div id="container">
+        <div id="developer">
+            <strong>Desenvolvido por:</strong><br> 
+            Rodrigo Secco Dias Nogueira<br><br>
+            <strong>Participantes do grupo:</strong><br>
+            Daniela Secco <br> 
+            Thaisa Assempção <br>
+            Valéria Theodoro <br>
+            Tatiane Sanches
+        </div>
+
+        <div id="gameArea">
+            <p>Clique no músculo correto!</p>
+            <p id="targetMuscle"></p>
+            <div style="position: relative;">
+                <canvas id="gameCanvas" width="900" height="600"></canvas>
+                <div id="markers"></div>
+            </div>
+        </div>
+
+        <div id="scoreboard">
+            <strong>Pontuação:</strong><br>
+            <span class="acertos">Acertos: </span><span class="acertos" id="correctScore">0</span> <br>
+            <span class="erros">Erros: </span><span class="erros" id="wrongScore">0</span>
+        </div>
+    </div>
+
+    <audio id="successSound" src="acerto.mp3"></audio>
+    <audio id="errorSound" src="erro.mp3"></audio>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const successSound = document.getElementById('successSound');
+        const errorSound = document.getElementById('errorSound');
+        const image = new Image();
+        image.src = "imagem.jpg";
+
+        let correctScore = 0;
+        let wrongScore = 0;
+
+        const muscles = [
+            { name: 'Frontalis', x: 450, y: 170 }, // Testa
+            { name: 'Orbicularis oculi', x: 450, y: 220 }, // Olhos
+            { name: 'Zygomaticus', x: 500, y: 320 }, // Bochecha superior
+            { name: 'Nasalis', x: 450, y: 250 }, // Nariz
+            { name: 'Buccinator', x: 430, y: 380 }, // Bochecha inferior
+            { name: 'Masseter', x: 450, y: 480 }, // Mandíbula
+            { name: 'Orbicularis oris', x: 450, y: 530 }, // Boca
+            { name: 'Depressor anguli oris', x: 450, y: 430 }, // Queixo
+            { name: 'Levator labii superioris', x: 470, y: 310 } // Acima do lábio superior
+        ];
+
+        let targetMuscle = null;
+
+        function drawImage() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+            drawMarkers();
+        }
+
+        function drawMarkers() {
+            const markersContainer = document.getElementById('markers');
+            markersContainer.innerHTML = '';
+
+            muscles.forEach(muscle => {
+                const marker = document.createElement('div');
+                marker.classList.add('muscle-marker');
+                marker.style.left = `${muscle.x}px`;
+                marker.style.top = `${muscle.y}px`;
+                markersContainer.appendChild(marker);
+            });
+        }
+
+        function pickNewTarget() {
+            targetMuscle = muscles[Math.floor(Math.random() * muscles.length)];
+            document.getElementById('targetMuscle').textContent = `Encontre: ${targetMuscle.name}`;
+        }
+
+        function updateScore() {
+            document.getElementById('correctScore').textContent = correctScore;
+            document.getElementById('wrongScore').textContent = wrongScore;
+        }
+
+        image.onload = () => {
+            drawImage();
+            pickNewTarget();
+        };
+
+        canvas.addEventListener('click', (event) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            let found = false;
+
+            muscles.forEach(muscle => {
+                const distance = Math.sqrt((x - muscle.x) ** 2 + (y - muscle.y) ** 2);
+                if (distance < 30) {
+                    found = true;
+                    if (muscle.name === targetMuscle.name) {
+                        successSound.play();
+                        alert(`✅ Parabéns! Você encontrou o músculo ${muscle.name}.`);
+                        correctScore++;
+                        pickNewTarget();
+                    } else {
+                        errorSound.play(); 
+                        alert("❌ Errado! Tente novamente.");
+                        wrongScore++;
+                    }
+                    updateScore();
+                }
+            });
+
+            if (!found) {
+                errorSound.play(); 
+                alert("❌ Você clicou fora da área dos músculos. Tente novamente.");
+                wrongScore++;
+                updateScore();
+            }
+        });
+    </script>
+</body>
+</html>
