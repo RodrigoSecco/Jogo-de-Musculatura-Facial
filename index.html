@@ -142,6 +142,7 @@
         ];
     
         let targetMuscle = null;
+        let lastTargetIndex = -1;
     
         function drawImage() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -163,7 +164,14 @@
         }
     
         function pickNewTarget() {
-            targetMuscle = muscles[Math.floor(Math.random() * muscles.length)];
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * muscles.length);
+            } while (newIndex === lastTargetIndex); 
+
+            lastTargetIndex = newIndex;
+            targetMuscle = muscles[newIndex];
+
             document.getElementById('targetMuscle').textContent = `Encontre: ${targetMuscle.name}`;
         }
     
@@ -205,10 +213,12 @@
                 errorSound.play();
                 alert("❌ Errado! Tente novamente.");
                 wrongScore++;
+                pickNewTarget();
             } else {
                 errorSound.play();
                 alert("❌ Você clicou fora da área dos músculos. Tente novamente.");
                 wrongScore++;
+                pickNewTarget();
             }
     
             updateScore();
